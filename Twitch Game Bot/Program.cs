@@ -19,7 +19,7 @@ namespace Twitch_Game_Bot
         [STAThread]
         static void Main()
         {
-            IRCClient irc = new IRCClient();
+            IRCClient irc = new IRCClient("irc.twitch.tv", 6667, "TwitchPlaysMinecraft_", "twitchplaysminecraft_");
         }
     }
 
@@ -31,7 +31,7 @@ namespace Twitch_Game_Bot
         StreamWriter ircWriter;
         LogView lv;
 
-        public IRCClient()
+        public IRCClient(string Host, int Port, string Nickname, string Channel)
         {
             lv = new LogView();
             new Thread(delegate()
@@ -45,14 +45,14 @@ namespace Twitch_Game_Bot
             }).Start();
 
             Console.WriteLine("[--] Connecting...");
-            ircClient = new TcpClient("199.9.250.229", 6667);
+            ircClient = new TcpClient(Host, Port);
             ircStream = ircClient.GetStream();
             ircReader = new StreamReader(ircStream);
             ircWriter = new StreamWriter(ircStream);
             Console.WriteLine("[--] Connected");
             Console.Write("Paste oauth token: ");
             Send("PASS " + Console.ReadLine());
-            Send("NICK TwitchPlaysMinecraft_");
+            Send("NICK " + Nickname);
 
             string cmd;
 
@@ -63,7 +63,7 @@ namespace Twitch_Game_Bot
                 {
                     try
                     {
-                        string action = cmd.Split(new string[] { "PRIVMSG #twitchplaysminecraft_ :" }, StringSplitOptions.None)[1];
+                        string action = cmd.Split(new string[] { "PRIVMSG #" + Channel + " :" }, StringSplitOptions.None)[1];
 
                         string nick = cmd.Split('!')[0].Remove(0, 1);
 
@@ -79,7 +79,7 @@ namespace Twitch_Game_Bot
                 }
                 else if (cmd.Contains("End of /MOTD command"))
                 {
-                    Send("JOIN #twitchplaysminecraft_");
+                    Send("JOIN #" + Channel);
                 }
                 else if (cmd == "PING tmi.twitch.tv")
                 {
